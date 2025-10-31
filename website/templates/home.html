@@ -1,3 +1,270 @@
 {% extends "base.html" %} {% block title %}Home{% endblock %} {% block content %}
-<p>questa e la home</p>
+
+
+
+
+    <div class="mt-5">
+        <h1 align="center">Survey Form</h1>
+        <form method="POST">
+            <h4>General info</h4>
+            <!-- University -->
+            <div class="form-group">
+                <label for="university">University *</label>
+                <input type="text" class="form-control" id="university" name="university" required>
+            </div>
+            <!-- Current status -->
+            <div class="form-group">
+                <label>Currently, you are *</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="current_status" id="master"
+                           value="Master student" required>
+                    <label class="form-check-label" for="master">Master student</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="current_status" id="phd1"
+                           value="A PhD Student in the first year">
+                    <label class="form-check-label" for="phd1">A PhD Student in the first year</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="current_status" id="phd2"
+                           value="A PhD Student in the second year">
+                    <label class="form-check-label" for="phd2">A PhD Student in the second year</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="current_status" id="phd3"
+                           value="A PhD student at least in the third year">
+                    <label class="form-check-label" for="phd3">A PhD student at least in the third year</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="current_status" id="post3plus"
+                           value="A PhD graduate (Post-doc or working in the private sector), with 3+ years of expertise">
+                    <label class="form-check-label" for="post3plus">A PhD graduate (Post-doc or working in the private
+                        sector), with 3+ years of expertise</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="current_status" id="post3less"
+                           value="A PhD graduate (Post-doc or working in the private sector), with less than three years of expertise">
+                    <label class="form-check-label" for="post3less">A PhD graduate (Post-doc or working in the private
+                        sector), with less than three years of expertise</label>
+                </div>
+            </div>
+            <!-- Field of Study -->
+            <div class="form-group">
+                <label>Field of study *</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="field_of_study" id="physical_sciences"
+                           value="Physical Sciences and Engineering (Physics, Mathematics, Chemistry etc)" required>
+                    <label class="form-check-label" for="physical_sciences">Physical Sciences and Engineering (Physics,
+                        Mathematics, Chemistry etc)</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="field_of_study" id="life_sciences"
+                           value="Life Sciences (Biochemistry, Biology, Pharmaceutical Sciences, Medicine etc)">
+                    <label class="form-check-label" for="life_sciences">Life Sciences (Biochemistry, Biology,
+                        Pharmaceutical Sciences, Medicine etc)</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="field_of_study" id="design_architecture"
+                           value="Design and architecture">
+                    <label class="form-check-label" for="design_architecture">Design and architecture</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="field_of_study" id="social_sciences"
+                           value="Social Sciences (Law, Economics, Psychology etc)">
+                    <label class="form-check-label" for="social_sciences">Social Sciences (Law, Economics, Psychology
+                        etc)</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="field_of_study" id="humanities"
+                           value="Humanities (Literature, History, Philosophy etc)">
+                    <label class="form-check-label" for="humanities">Humanities (Literature, History, Philosophy
+                        etc)</label>
+                </div>
+            </div>
+            <h4>My PhD Mentor info</h4>
+            <!-- Do you want to participate as -->
+            <div class="form-group">
+                <label>Do you want to participate as: <small class="text-muted">(Please read carefully the descriptions
+                    and remember that if you are a PhD graduate (Post doc or higher), you cannot be a mentee)</small> *</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="participation_role" id="mentor"
+                           value="Mentor (only PhDs and PhD graduates)" required>
+                    <label class="form-check-label" for="mentor">Mentor (only PhDs and PhD graduates)</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="participation_role" id="mentee"
+                           value="Mentee (only master students and PhDs)">
+                    <label class="form-check-label" for="mentee">Mentee (only master students and PhDs)</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="participation_role" id="mentor_mentee"
+                           value="Mentor and Mentee (Only for PhDs)">
+                    <label class="form-check-label" for="mentor_mentee">Mentor and Mentee (Only for PhDs)</label>
+                </div>
+            </div>
+            <h4>Communication and time</h4>
+            <!-- Time commitment -->
+            <div class="form-group">
+                <label>On average, how long would you expect to devote/need each month for mentoring activities?
+                    *</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="time_commitment" id="time_1_3"
+                           value="1 to 3 hours" required>
+                    <label class="form-check-label" for="time_1_3">1 to 3 hours</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="time_commitment" id="time_3_5"
+                           value="3 to 5 hours">
+                    <label class="form-check-label" for="time_3_5">3 to 5 hours</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="time_commitment" id="time_5_plus"
+                           value="more than 5 hours">
+                    <label class="form-check-label" for="time_5_plus">more than 5 hours</label>
+                </div>
+            </div>
+
+            <!-- Communication preference -->
+            <div class="form-group">
+                <label>How would you prefer to communicate with the mentor/mentee? *</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="communication" id="phone_calls"
+                           value="Through phone calls" required>
+                    <label class="form-check-label" for="phone_calls">Through phone calls</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="communication" id="emails"
+                           value="Through emails">
+                    <label class="form-check-label" for="emails">Through emails</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="communication" id="video_calls"
+                           value="Through video calls">
+                    <label class="form-check-label" for="video_calls">Through video calls</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="communication" id="face_meetings"
+                           value="Through face to face meetings">
+                    <label class="form-check-label" for="face_meetings">Through face to face meetings</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="communication" id="social_media"
+                           value="Through social media">
+                    <label class="form-check-label" for="social_media">Through social media</label>
+                </div>
+            </div>
+            <h4>Discussion topics</h4>
+            <!-- Discussion interests table -->
+            <div class="form-group">
+                <label>What you would like to discuss with your mentor/mentee? *</label>
+                <small class="form-text text-muted">
+                    1 - Not interested at all | 2 - Minimally interested | 3 - Somewhat interested | 4 - Interested | 5
+                    - Very interested
+                </small>
+
+                {% set topics = [
+        "Improve communication with advisor/PI",
+        "Help in writing a paper/projects/preparing presentations",
+        "Maximize the learning experience at a conference",
+        "Help with the choice of the time abroad",
+        "PhD-work balance",
+        "PhD-family balance",
+        "Improve your soft skills",
+        "Help with academic career",
+        "Help with industrial career",
+        "Talk about mental well-being"
+      ] %}
+
+                <table class="table table-bordered table-striped mt-3 text-center">
+                    <thead class="thead-dark">
+                    <tr>
+                        <th>Topic</th>
+                        <th>1</th>
+                        <th>2</th>
+                        <th>3</th>
+                        <th>4</th>
+                        <th>5</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for topic in topics %}
+                        <tr>
+                            <td class="text-left">{{ topic }}</td>
+                            {% for i in range(1,6) %}
+                                <td>
+                                    {% set safe_topic = topic|replace(' ', '_')|replace('/', '_')|replace('-', '_') %}
+                                    <input type="radio" name="{{ safe_topic }}" value="{{ i }}" required>
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <h4>Suggestions & info</h4>
+            <!-- How did you discover MyPhDMentor -->
+            <div class="form-group">
+                <label>How did you discover MyPhDMentor? *</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="discovery" id="university_mailing"
+                           value="University mailing list" required>
+                    <label class="form-check-label" for="university_mailing">University mailing list</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="discovery" id="comitato_valorizzazione"
+                           value="Comitato per la Valorizzazione del Dottorato (webpage/social media)">
+                    <label class="form-check-label" for="comitato_valorizzazione">Comitato per la Valorizzazione del
+                        Dottorato (webpage/social media)</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="discovery" id="facebook"
+                           value="Facebook">
+                    <label class="form-check-label" for="facebook">Facebook</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="discovery" id="linkedin"
+                           value="Linkedin">
+                    <label class="form-check-label" for="linkedin">Linkedin</label>
+                </div>
+            </div>
+
+            <!-- Advice or suggestions -->
+            <div class="form-group">
+                <label for="advice">Do you have any advice or suggestion?</label>
+                <textarea class="form-control" id="advice" name="advice" rows="3"
+                          placeholder="Write your suggestions here..."></textarea>
+            </div>
+
+            <!-- Help with promotion -->
+            <div class="form-group">
+                <label>Do you want to help us with the promotion of this initiative? *</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="promotion_help" id="help_yes"
+                           value="Yes" required>
+                    <label class="form-check-label" for="help_yes">Yes</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="promotion_help" id="help_no"
+                           value="No">
+                    <label class="form-check-label" for="help_no">No</label>
+                </div>
+            </div>
+            <!-- GDPR Consent -->
+            <div class="form-group">
+                <label>In compliance with the GDPR and the Italian Legislative Decree no. 196 dated 30/06/2003, I hereby
+                    authorize you to use and process my personal details contained in this form. *</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="gdpr_consent" id="gdpr_consent"
+                           value="Accept" required>
+                    <label class="form-check-label" for="gdpr_consent">Accept</label>
+                </div>
+            </div>
+
+
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+
+
+
 {% endblock %}
