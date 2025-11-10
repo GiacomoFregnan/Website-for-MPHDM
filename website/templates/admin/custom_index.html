@@ -1,0 +1,67 @@
+{% extends 'admin/base.html' %}
+
+{% block body %}
+
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-12">
+        <h1>Benvenuto, {{ current_user.first_name }}!</h1>
+        <p class="lead">
+          Questa è la dashboard principale del progetto. Da qui puoi monitorare
+          l'attività degli utenti e gestire il database.
+        </p>
+        <hr />
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3">
+          <div class="card-header">Totale Utenti (non-admin)</div>
+          <div class="card-body">
+            <h1 class="card-title text-center">{{ totale_utenti }}</h1>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card text-white bg-success mb-3">
+          <div class="card-header">Ruolo "Mentor"</div>
+          <div class="card-body">
+            <h1 class="card-title text-center">{{ mentors }}</h1>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card text-white bg-info mb-3">
+          <div class="card-header">Ruolo "Mentee"</div>
+          <div class="card-body">
+            <h1 class="card-title text-center">{{ mentees }}</h1>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Divisione Aree di Studio</div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Scienze (STEM)
+                            <span class="badge badge-primary badge-pill">{{ utenti_stem }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Scienze Sociali & Umanistiche (SSH)
+                            <span class="badge badge-secondary badge-pill">{{ utenti_ssh }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+  </div>
+{% endblock %}

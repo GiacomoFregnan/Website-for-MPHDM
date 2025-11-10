@@ -11,6 +11,11 @@ views = Blueprint('views', __name__)
 @views.route('/', methods=['GET', 'POST'])
 @login_required
 def home():
+
+    if current_user.university:
+        return redirect(url_for('views.state'))
+
+
     if request.method == 'POST':
         university = request.form['university']
         current_status = request.form['current_status']

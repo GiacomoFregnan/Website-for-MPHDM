@@ -15,6 +15,8 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(150))
     first_name = db.Column(db.String(150))
     surname = db.Column(db.String(150))
+    is_admin = db.Column(db.Boolean, default=False, nullable=False)
+
     university = db.Column(db.String(150))
     current_status = db.Column(db.String(150))
     field_of_study = db.Column(db.String(150))
