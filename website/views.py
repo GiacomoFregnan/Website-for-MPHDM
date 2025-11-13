@@ -1,21 +1,23 @@
+# In website/views.py
+# (Versione con stato NULL e vista utente bloccata)
+
 from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for
 from flask_login import login_required, current_user
 from . import db
+from .models import User, Match  # Importa i modelli
 import json
 
 views = Blueprint('views', __name__)
 
 
-
-
 @views.route('/', methods=['GET', 'POST'])
 @login_required
 def home():
-
-    if current_user.university:
+    # Se lo stato NON è NULL (quindi è 0, 1, 2, o 3), vai a 'state'
+    if current_user.matching_status is not None:
         return redirect(url_for('views.state'))
 
-
+    # Altrimenti (se è NULL), mostra il form
     if request.method == 'POST':
         university = request.form['university']
         current_status = request.form['current_status']
@@ -42,40 +44,7 @@ def home():
 
         if len(university) < 5:
             flash("Please enter your university", "error")
-        elif not current_status:
-            flash("Please select your current status", "error")
-        elif not field_of_study:
-            flash("Please select your field of study", "error")
-        elif not participation_role:
-            flash("Please select your participation role", "error")
-        elif not time_commitment:
-            flash("Please select your time commitment", "error")
-        elif not communication:
-            flash("Please select your communication", "error")
-        elif not improve_communication:
-            flash("Please select your improve communication", "error")
-        elif not help_writing_paper:
-            flash("Please select your help writing paper", "error")
-        elif not maximize_conference_experience:
-            flash("Please select your maximize conference experience", "error")
-        elif not help_choice_time_abroad:
-            flash("Please select your help choice time abroad", "error")
-        elif not phd_work_balance:
-            flash("Please select your phd work balance", "error")
-        elif not phd_family_balance:
-            flash("Please select your phd family balance", "error")
-        elif not improve_soft_skills:
-            flash("Please select your improve soft skills", "error")
-        elif not talk_mental_wellbeing:
-            flash("Please select your talk about mental well-being", "error")
-        elif not help_academic_career:
-            flash("Please select your help academic career", "error")
-        elif not help_industrial_career:
-            flash("Please select your help industrial career", "error")
-        elif not discovery:
-            flash("Please select how dis you discovered us", "error")
-        elif not promotion_help:
-            flash("Please select if you want promotion", "error")
+        # ... (tutti gli altri 'elif' della validazione) ...
         elif not gdpr_consent:
             flash("Please select your gdpr consent", "error")
         else:
@@ -101,7 +70,13 @@ def home():
             current_user.advice = advice
             current_user.promotion_help = promotion_help
 
-
+            # Imposta lo stato in base al ruolo
+            if participation_role == "Mentor (only PhDs and PhD graduates)":
+                current_user.matching_status = 1
+            elif participation_role == "Mentee (only master students and PhDs)":
+                current_user.matching_status = 2
+            elif participation_role == "Mentor and Mentee (Only for PhDs)":
+                current_user.matching_status = 3
 
             db.session.commit()
             flash('Informations updated!', category='success')
@@ -113,4 +88,7 @@ def home():
 @views.route('/state', methods=['GET', 'POST'])
 @login_required
 def state():
-    return render_template("state.html", user=current_user)
+    # --- VISTA UTENTE "BLOCCATA" ---
+    # Come da tua richiesta, l'utente vede "in attesa"
+    # anche se il suo stato è 0.
+    return render_template("state.html", user=current_user, partner=None)

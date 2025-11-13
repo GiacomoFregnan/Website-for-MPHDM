@@ -1,12 +1,8 @@
+# In website/models.py
+
 from . import db
 from flask_login import UserMixin
 from sqlalchemy.sql import func
-
-
-
-
-
-
 
 
 class User(db.Model, UserMixin):
@@ -20,9 +16,9 @@ class User(db.Model, UserMixin):
     university = db.Column(db.String(150))
     current_status = db.Column(db.String(150))
     field_of_study = db.Column(db.String(150))
-    participation_role =db.Column(db.String(150))
-    time_commitment =db.Column(db.String(150))
-    communication =db.Column(db.String(150))
+    participation_role = db.Column(db.String(150))
+    time_commitment = db.Column(db.String(150))
+    communication = db.Column(db.String(150))
 
     improve_communication = db.Column(db.String(150))
     help_writing_paper = db.Column(db.String(150))
@@ -39,6 +35,23 @@ class User(db.Model, UserMixin):
     advice = db.Column(db.String(150))
     promotion_help = db.Column(db.String(150))
 
+    # --- COLONNA MATCHING_STATUS (Versione semplice) ---
+    # 0 -> Correctly matched
+    # 1 -> Requires an assignment as Mentor
+    # 2 -> Requires an assignment as Mentee
+    # 3 -> Requires an assignment as both
+    # NULL (default) -> Form non compilato
+    matching_status = db.Column(db.Integer, default=None, nullable=True)
 
 
+# --- TABELLA MATCH (Versione semplice) ---
+class Match(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
 
+    mentor_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    mentee_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    # Niente colonna 'status'
+
+    mentor = db.relationship('User', foreign_keys=[mentor_id], backref='mentoring_matches')
+    mentee = db.relationship('User', foreign_keys=[mentee_id], backref='mentee_match')

@@ -1,10 +1,28 @@
 {% extends "base.html" %} {% block title %}State{% endblock %} {% block
 content %}
 
-    <h1 align="center">Matching state</h1>
-    <h2 align="center">you are about to be matched...</h2>
+    {% if current_user.matching_status == 0 and partner %}
 
+        <h1 align="center">Matching Completato!</h1>
 
+        {% if current_user.participation_role.startswith('Mentee') %}
+            <h2 align="center">Il tuo Mentore è:</h2>
+            <h3 align="center">{{ partner.first_name }} {{ partner.surname }}</h3>
+            <p align="center">Puoi contattarlo/a all'email: {{ partner.email }}</p>
 
+        {% else %}
+            <h2 align="center">Il tuo Mentee è:</h2>
+            <h3 align="center">{{ partner.first_name }} {{ partner.surname }}</h3>
+            <p align="center">Puoi contattarlo/a all'email: {{ partner.email }}</p>
+        {% endif %}
+
+    {% else %}
+        <h1 align="center">Matching state</h1>
+        <h2 align="center">you are about to be matched...</h2>
+        <p align="center">
+            L'amministratore sta processando la tua richiesta.
+            Torna a controllare questa pagina più tardi!
+        </p>
+    {% endif %}
 
 {% endblock %}
