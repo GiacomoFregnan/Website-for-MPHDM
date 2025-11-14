@@ -1,5 +1,4 @@
-# In website/views.py
-# (Versione con stato NULL e vista utente bloccata)
+
 
 from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for
 from flask_login import login_required, current_user
@@ -13,9 +12,11 @@ views = Blueprint('views', __name__)
 @views.route('/', methods=['GET', 'POST'])
 @login_required
 def home():
-    # Se lo stato NON è NULL (quindi è 0, 1, 2, o 3), vai a 'state'
+
+    # Se lo stato NON è NULL (quindi è 0, 1, 2, 3, o 5), vai a 'state'
     if current_user.matching_status is not None:
         return redirect(url_for('views.state'))
+
 
     # Altrimenti (se è NULL), mostra il form
     if request.method == 'POST':
@@ -44,7 +45,7 @@ def home():
 
         if len(university) < 5:
             flash("Please enter your university", "error")
-        # ... (tutti gli altri 'elif' della validazione) ...
+
         elif not gdpr_consent:
             flash("Please select your gdpr consent", "error")
         else:
@@ -88,7 +89,28 @@ def home():
 @views.route('/state', methods=['GET', 'POST'])
 @login_required
 def state():
-    # --- VISTA UTENTE "BLOCCATA" ---
-    # Come da tua richiesta, l'utente vede "in attesa"
-    # anche se il suo stato è 0.
-    return render_template("state.html", user=current_user, partner=None)
+    # LOGICA DI VISUALIZZAZIONE UTENTE "SBLOCCATA"
+    partner = None
+
+    # L'utente vede il match SOLO se il suo stato è 0 (Approvato)
+    if current_user.matching_status == 0:
+        # Cerca se è un mentee in un match approvato
+        match_come_mentee = Match.query.filter_by(
+            mentee_id=current_user.id,
+            status='Approved'
+        ).first()
+
+        # Cerca se è un mentore in un match approvato
+        match_come_mentor = Match.query.filter_by(
+            mentor_id=current_user.id,
+            status='Approved'
+        ).first()
+
+        if match_come_mentee:
+            partner = match_come_mentee.mentor
+        elif match_come_mentor:
+            partner = match_come_mentor.mentee
+
+    # Se lo stato non è 0 (es. è 1, 2, 3, 5, o NULL),
+    # 'partner' rimarrà None, e il template mostrerà "in attesa".
+    return render_template("state.html", user=current_user, partner=partner)

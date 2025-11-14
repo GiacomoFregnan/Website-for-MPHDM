@@ -1,5 +1,4 @@
-# In website/__init__.py
-# (Versione semplice, senza approvazione)
+
 
 from flask import Flask, redirect, url_for, request, flash
 from flask_sqlalchemy import SQLAlchemy
@@ -59,9 +58,11 @@ def create_app():
                 mentees = User.query.filter(User.participation_role.ilike('%Mentee%')).count()
                 utenti_da_matchare = User.query.filter(User.matching_status.in_([1, 2, 3])).count()
                 utenti_matchati = User.query.filter_by(matching_status=0).count()
+                # Nuova statistica
+                utenti_in_attesa_approvazione = User.query.filter_by(matching_status=5).count()
 
             except Exception as e:
-                totale_utenti = mentors = mentees = utenti_da_matchare = utenti_matchati = 0
+                totale_utenti = mentors = mentees = utenti_da_matchare = utenti_matchati = utenti_in_attesa_approvazione = 0
                 flash(f"Errore nel caricamento statistiche: {e}", "error")
 
             return self.render(
@@ -70,7 +71,8 @@ def create_app():
                 mentors=mentors,
                 mentees=mentees,
                 utenti_da_matchare=utenti_da_matchare,
-                utenti_matchati=utenti_matchati
+                utenti_matchati=utenti_matchati,
+                utenti_in_attesa_approvazione=utenti_in_attesa_approvazione  # Passa la statistica
             )
 
         def is_accessible(self):
@@ -79,21 +81,24 @@ def create_app():
         def inaccessible_callback(self, name, **kwargs):
             return redirect(url_for('auth.login', next=request.url))
 
-    # --- VISTA PER IL MATCHING (Versione semplice) ---
+    # VISTA PER IL MATCHING (CON FLUSSO APPROVAZIONE)
     class MatchingView(BaseView):
         @expose('/')
         def index(self):
-            # Carica tutti i match e li passa al template
-            all_matches = Match.query.all()
+            # Carica match in sospeso e approvati
+            pending_matches = Match.query.filter_by(status='Pending').all()
+            approved_matches = Match.query.filter_by(status='Approved').all()
+
             return self.render(
                 'admin/matching.html',
-                all_matches=all_matches
+                pending_matches=pending_matches,
+                approved_matches=approved_matches
             )
 
         @expose('/run-matching', methods=['POST'])
         def run_matching(self):
             try:
-                # 1. Trova utenti 1, 2, 3
+                # 1. Trova utenti 1, 2, 3 (NON 5!)
                 utenti_da_matchare = User.query.filter(
                     User.matching_status.in_([1, 2, 3]),
                     User.is_admin == False
@@ -109,7 +114,7 @@ def create_app():
                     flash(f"Errore: file dei pesi non trovato in {weights_path}", "error")
                     return redirect(url_for('matching.index'))
 
-                # 2. Esegui algoritmo
+                #esecuszione algoritmo versione col cerotto int()
                 row_ind, col_ind, people, M = matching_logic.esegui_matching_da_db(
                     utenti_da_matchare,
                     weights_path
@@ -119,37 +124,41 @@ def create_app():
                     flash("Algoritmo avviato, ma non ci sono abbastanza mentori o mentee per un matching.", "info")
                     return redirect(url_for('matching.index'))
 
-                # 3. Aggiorna DB
+                # aggiorno DB
                 match_creati = 0
-                id_utenti_matchati = set()
+                id_utenti_in_sospeso = set()
 
                 for e, o in zip(row_ind, col_ind):
                     if M[e][o] > -1:
                         mentee = people["mentee"][e]
                         mentor = people["mentor"][o]
 
-                        # Crea il Match
-                        nuovo_match = Match(mentor_id=mentor['id'], mentee_id=mentee['id'])
+
+                        # Crea il Match come 'Pending'
+                        nuovo_match = Match(mentor_id=mentor['id'], mentee_id=mentee['id'], status='Pending')
                         db.session.add(nuovo_match)
 
-                        id_utenti_matchati.add(mentor['id'])
-                        id_utenti_matchati.add(mentee['id'])
+                        # Aggiunnta degli ID degli utenti da impostare a 5
+                        id_utenti_in_sospeso.add(mentor['id'])
+                        id_utenti_in_sospeso.add(mentee['id'])
                         match_creati += 1
 
                 if match_creati == 0:
                     flash("Algoritmo eseguito, ma nessun match valido trovato (punteggio > -1).", "info")
                     return redirect(url_for('matching.index'))
 
-                # Imposta lo stato degli utenti direttamente a 0
+
+                # Impostazione dello stato degli utenti a 5 (Pending Approval)
                 User.query.filter(
-                    User.id.in_(id_utenti_matchati)
+                    User.id.in_(id_utenti_in_sospeso)
                 ).update(
-                    {User.matching_status: 0},
+                    {User.matching_status: 5},
                     synchronize_session=False
                 )
 
                 db.session.commit()
-                flash(f'Matching completato! Creati {match_creati} nuovi match.', 'success')
+                flash(f'Matching completato! Creati {match_creati} nuovi match. Sono in attesa di approvazione.',
+                      'success')
 
             except Exception as e:
                 db.session.rollback()
@@ -157,29 +166,48 @@ def create_app():
 
             return redirect(url_for('matching.index'))
 
-        # --- PULSANTE DI RESET (Opzionale ma utile per i test) ---
-        @expose('/reset-matches', methods=['POST'])
-        def reset_all_matches(self):
-            try:
-                # 1. Resetta gli utenti da 0 a 1, 2, 3
-                users_to_reset = User.query.filter(User.matching_status == 0).all()
-                for user in users_to_reset:
-                    self.reset_user_status(user)
+        # ROTTA PER APPROVARE
+        @expose('/approve/<int:match_id>')
+        def approve_match(self, match_id):
+            match = Match.query.get_or_404(match_id)
+            if match.status == 'Pending':
+                match.status = 'Approved'
 
-                # 2. Cancella tutti i match
-                num_matches_deleted = db.session.query(Match).delete()
+                # Imposta gli utenti a '0' (Completato)
+                if match.mentor: match.mentor.matching_status = 0
+                if match.mentee: match.mentee.matching_status = 0
+
                 db.session.commit()
-                flash(
-                    f"Reset completato! {len(users_to_reset)} utenti reimpostati, {num_matches_deleted} match cancellati.",
-                    "success")
-            except Exception as e:
-                db.session.rollback()
-                flash(f"Errore reset: {e}", "error")
+                flash(f"Match tra {match.mentor.first_name} e {match.mentee.first_name} approvato.", "success")
+            else:
+                flash("Match già processato.", "warning")
             return redirect(url_for('matching.index'))
 
+        # ROTTA PER RIFIUTARE
+        @expose('/reject/<int:match_id>')
+        def reject_match(self, match_id):
+            match = Match.query.get_or_404(match_id)
+            if match.status == 'Pending':
+
+                # Rimettiamo gli utenti "in gioco"
+                self.reset_user_status(match.mentor)
+                self.reset_user_status(match.mentee)
+
+                db.session.delete(match)
+                db.session.commit()
+                flash(f"Match tra {match.mentor.first_name} e {match.mentee.first_name} rifiutato.", "danger")
+            else:
+                flash("Match già processato.", "warning")
+            return redirect(url_for('matching.index'))
+
+        # Funzione helper per resettare lo stato utente
         def reset_user_status(self, user):
-            if not user: return
+            if not user:
+                return
+
+            # Pulisci il ruolo per sicurezza
             role = user.participation_role.strip() if user.participation_role else ""
+
             if role == "Mentor (only PhDs and PhD graduates)":
                 user.matching_status = 1
             elif role == "Mentee (only master students and PhDs)":
@@ -187,8 +215,9 @@ def create_app():
             elif role == "Mentor and Mentee (Only for PhDs)":
                 user.matching_status = 3
             else:
-                user.matching_status = None  # Usa NULL
-            db.session.add(user)  # Aggiungi alla sessione
+                user.matching_status = None  # Default è NULL (form non compilato)
+
+            db.session.add(user)  # Aggiungi alla sessione per il commit
 
         def is_accessible(self):
             return current_user.is_authenticated and current_user.is_admin
@@ -196,7 +225,7 @@ def create_app():
         def inaccessible_callback(self, name, **kwargs):
             return redirect(url_for('auth.login', next=request.url))
 
-    # --- FINE VISTA MATCHING ---
+    # FINE VISTA MATCHING
 
     admin = Admin(
         app,

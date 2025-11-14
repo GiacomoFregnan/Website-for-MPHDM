@@ -1,4 +1,4 @@
-# In website/models.py
+
 
 from . import db
 from flask_login import UserMixin
@@ -35,23 +35,26 @@ class User(db.Model, UserMixin):
     advice = db.Column(db.String(150))
     promotion_help = db.Column(db.String(150))
 
-    # --- COLONNA MATCHING_STATUS (Versione semplice) ---
-    # 0 -> Correctly matched
+    # COLONNA MATCHING_STATUS
+    # 0 -> Correctly matched (e approvato dall'admin)
     # 1 -> Requires an assignment as Mentor
     # 2 -> Requires an assignment as Mentee
     # 3 -> Requires an assignment as both
+    # 5 -> Matched, Pending Admin Approval
     # NULL (default) -> Form non compilato
     matching_status = db.Column(db.Integer, default=None, nullable=True)
 
 
-# --- TABELLA MATCH (Versione semplice) ---
+#TABELLA MATC
 class Match(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     mentor_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     mentee_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
-    # Niente colonna 'status'
+    # COLONNA PER L'APPROVAZIONE
+    # Stati: 'Pending', 'Approved'
+    status = db.Column(db.String(50), default='Pending', nullable=False)
 
     mentor = db.relationship('User', foreign_keys=[mentor_id], backref='mentoring_matches')
     mentee = db.relationship('User', foreign_keys=[mentee_id], backref='mentee_match')
