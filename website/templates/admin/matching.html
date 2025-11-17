@@ -1,0 +1,91 @@
+{% extends 'admin/base.html' %}
+
+{% block body %}
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-12">
+        <h1>Gestione Matching</h1>
+        <p class="lead">
+          Avvia l'algoritmo per generare nuovi match (Stato 1, 2, 3).
+          I match generati appariranno in "Match in Sospeso" per la tua approvazione.
+        </p>
+        <hr />
+      </div>
+    </div>
+
+    <div class="row mb-4">
+      <div class="col-12">
+        <h3>Avvia Nuovo Matching</h3>
+        <form method="POST" action="{{ url_for('matching.run_matching') }}">
+          <button type="submit" class="btn btn-danger">
+            Avvia Algoritmo di Matching
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <hr />
+
+    <div class="row mb-5">
+      <div class="col-12">
+        <h3>Match in Sospeso ({{ pending_matches|length }})</h3>
+
+        {% if pending_matches %}
+          <table class="table table-striped table-bordered">
+            <thead class="thead-light">
+              <tr>
+                <th>Mentee</th>
+                <th>Mentor</th>
+                <th>Azione</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for match in pending_matches %}
+              <tr>
+                <td>{{ match.mentee.first_name }} {{ match.mentee.surname }} ({{match.mentee.email}})</td>
+                <td>{{ match.mentor.first_name }} {{ match.mentor.surname }} ({{match.mentor.email}})</td>
+                <td>
+                  <a href="{{ url_for('matching.approve_match', match_id=match.id) }}" class="btn btn-success btn-sm">Approva</a>
+                  <a href="{{ url_for('matching.reject_match', match_id=match.id) }}" class="btn btn-danger btn-sm">Rifiuta</a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p>Nessun match in attesa di approvazione.</p>
+        {% endif %}
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12">
+        <h3>Match Approvati ({{ approved_matches|length }})</h3>
+
+        {% if approved_matches %}
+          <table class="table table-striped table-bordered">
+            <thead class="thead-dark">
+              <tr>
+                <th>Mentee</th>
+                <th>Email Mentee</th>
+                <th>Mentor</th>
+                <th>Email Mentor</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for match in approved_matches %}
+              <tr>
+                <td>{{ match.mentee.first_name }} {{ match.mentee.surname }}</td>
+                <td>{{ match.mentee.email }}</td>
+                <td>{{ match.mentor.first_name }} {{ match.mentor.surname }}</td>
+                <td>{{ match.mentor.email }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p>Nessun match ancora approvato.</p>
+        {% endif %}
+      </div>
+    </div>
+    </div>
+{% endblock %}
