@@ -42,7 +42,51 @@
                 </div>
             </div>
         </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Come hanno scoperto il sito</div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            {% for item, count in discovery_stats %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    {% if item %}
+                                        {{ item }}
+                                    {% else %}
+                                        Non specificato (NULL)
+                                    {% endif %}
+                                    <span class="badge badge-primary badge-pill">{{ count }}</span>
+                                </li>
+                            {% endfor %}
+                            {% if not discovery_stats %}
+                                <li class="list-group-item">Nessun dato</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
 
-
-    </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Stato Utenti (Matching)</div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                In attesa di matching (Stato 1, 2, 3)
+                                <span class="badge badge-warning badge-pill">{{ utenti_da_matchare }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                In attesa di approvazione (Stato 5)
+                                <span class="badge badge-info badge-pill">{{ utenti_in_attesa_approvazione }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Matchati e Approvati (Stato 0)
+                                <span class="badge badge-success badge-pill">{{ utenti_matchati }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
 {% endblock %}

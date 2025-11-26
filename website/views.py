@@ -114,3 +114,11 @@ def state():
     # Se lo stato non è 0 (es. è 1, 2, 3, 5, o NULL),
     # 'partner' rimarrà None, e il template mostrerà "in attesa".
     return render_template("state.html", user=current_user, partner=partner)
+
+
+
+
+@views.route('/profile')
+@login_required
+def profile():
+    return render_template("profile.html", user=current_user)

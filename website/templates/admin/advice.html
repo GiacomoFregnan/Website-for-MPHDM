@@ -1,0 +1,41 @@
+{% extends 'admin/base.html' %}
+
+{% block body %}
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-12">
+        <h1>Consigli dagli Utenti</h1>
+        <p class="lead">
+          Questa pagina mostra tutti i suggerimenti lasciati dagli utenti
+          nel campo "Do you have any advice or suggestion?".
+        </p>
+        <hr />
+      </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            {% if all_advice %}
+                {% for user in all_advice %}
+                    <div class="card mb-3 shadow-sm">
+                        <div class="card-header">
+                            <strong>Da:</strong> {{ user.first_name.capitalize() }} {{ user.surname.capitalize() }}
+                            <small class="text-muted">({{ user.email }})</small>
+                        </div>
+                        <div class="card-body">
+                            <blockquote class="blockquote mb-0">
+                                <p>{{ user.advice }}</p>
+                            </blockquote>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-info">
+                    Nessun consiglio lasciato dagli utenti per ora.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+  </div>
+{% endblock %}

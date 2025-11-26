@@ -124,11 +124,16 @@ def esegui_matching_da_db(utenti_da_matchare, weights_path):
             availability_medium = onehot(comm_pref, ["Through phone calls", "Through face to face meetings",
                                                      "Through social media", "Through video calls", "Through emails"])
             interests = [
-                int(user.improve_communication or 1), int(user.help_writing_paper or 1),
-                int(user.maximize_conference_experience or 1), int(user.help_choice_time_abroad or 1),
-                int(user.phd_work_balance or 1), int(user.phd_family_balance or 1),
-                int(user.improve_soft_skills or 1), int(user.help_academic_career or 1),
-                int(user.help_industrial_career or 1), int(user.talk_mental_wellbeing or 1)
+                int(user.improve_communication or 1),
+                int(user.help_writing_paper or 1),
+                int(user.maximize_conference_experience or 1),
+                int(user.help_choice_time_abroad or 1),
+                int(user.phd_work_balance or 1),
+                int(user.phd_family_balance or 1),
+                int(user.improve_soft_skills or 1),
+                int(user.help_academic_career or 1),
+                int(user.help_industrial_career or 1),
+                int(user.talk_mental_wellbeing or 1)
             ]
             try:
                 interests.append(FIELDS.index(field))
@@ -156,9 +161,9 @@ def esegui_matching_da_db(utenti_da_matchare, weights_path):
     weightvector = readWeightVector(weights_path)
 
     test_features_len = len(people['mentor'][0]['features']) if people['mentor'] else len(
-        people['mentee'][0]['features'])
+       people['mentee'][0]['features'])
     if test_features_len != len(weightvector):
-        weightvector = np.append(weightvector, 1.0)
+       weightvector = np.append(weightvector, 1.0)
 
     M = np.zeros((len(people["mentee"]), len(people["mentor"])))
     for (e, mentee), (o, mentor) in product(enumerate(people["mentee"]), enumerate(people["mentor"])):

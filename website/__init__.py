@@ -1,5 +1,3 @@
-
-
 from flask import Flask, redirect, url_for, request, flash
 from flask_sqlalchemy import SQLAlchemy
 from os import path
@@ -10,6 +8,7 @@ from flask_admin.contrib.sqla import ModelView
 from flask_admin.menu import MenuLink
 import os
 from . import matching_logic
+from sqlalchemy import func, not_
 
 db = SQLAlchemy()
 DB_NAME = "database.db"
@@ -49,6 +48,47 @@ def create_app():
 
         def inaccessible_callback(self, name, **kwargs): return redirect(url_for('auth.login', next=request.url))
 
+    # CLASSE PER LA TABELLA MATCH
+    class MatchAdminView(ModelView):
+        # Mostra i nomi leggibili usando le relazioni del modello
+        column_list = ('mentee.first_name', 'mentee.surname', 'mentor.first_name', 'mentor.surname', 'status')
+
+        # Permette di modificare lo stato direttamente dalla lista
+        column_editable_list = ('status',)
+
+        # Aggiunge un filtro per lo stato
+        column_filters = ('status',)
+
+        # Rendi le FK ricercabili (es. per email)
+        column_searchable_list = ('mentee.email', 'mentor.email', 'mentee.first_name', 'mentor.first_name')
+
+        def is_accessible(self):
+            return current_user.is_authenticated and current_user.is_admin
+
+        def inaccessible_callback(self, name, **kwargs):
+            return redirect(url_for('auth.login', next=request.url))
+
+    # CLASSE PER I CONSIGLI
+    class AdviceView(BaseView):
+        @expose('/')
+        def index(self):
+            # Trova tutti gli utenti che hanno lasciato un consiglio
+            all_advice = User.query.filter(
+                not_(User.advice.is_(None)),  # Non è NULL
+                User.advice != ''  # Non è una stringa vuota
+            ).all()
+
+
+            return self.render('admin/advice.html', all_advice=all_advice)
+
+        def is_accessible(self):
+            return current_user.is_authenticated and current_user.is_admin
+
+        def inaccessible_callback(self, name, **kwargs):
+            return redirect(url_for('auth.login', next=request.url))
+
+
+
     class MyAdminIndexView(AdminIndexView):
         @expose('/')
         def index(self):
@@ -58,11 +98,16 @@ def create_app():
                 mentees = User.query.filter(User.participation_role.ilike('%Mentee%')).count()
                 utenti_da_matchare = User.query.filter(User.matching_status.in_([1, 2, 3])).count()
                 utenti_matchati = User.query.filter_by(matching_status=0).count()
-                # Nuova statistica
                 utenti_in_attesa_approvazione = User.query.filter_by(matching_status=5).count()
+
+                discovery_stats = db.session.query(
+                    User.discovery,
+                    func.count(User.discovery)
+                ).filter(User.is_admin == False).group_by(User.discovery).all()
 
             except Exception as e:
                 totale_utenti = mentors = mentees = utenti_da_matchare = utenti_matchati = utenti_in_attesa_approvazione = 0
+                discovery_stats = []
                 flash(f"Errore nel caricamento statistiche: {e}", "error")
 
             return self.render(
@@ -72,7 +117,8 @@ def create_app():
                 mentees=mentees,
                 utenti_da_matchare=utenti_da_matchare,
                 utenti_matchati=utenti_matchati,
-                utenti_in_attesa_approvazione=utenti_in_attesa_approvazione  # Passa la statistica
+                utenti_in_attesa_approvazione=utenti_in_attesa_approvazione,
+                discovery_stats=discovery_stats
             )
 
         def is_accessible(self):
@@ -98,10 +144,9 @@ def create_app():
         @expose('/run-matching', methods=['POST'])
         def run_matching(self):
             try:
-                # 1. Trova utenti 1, 2, 3 (NON 5!)
+                # 1. Trova utenti 1, 2, 3
                 utenti_da_matchare = User.query.filter(
-                    User.matching_status.in_([1, 2, 3]),
-                    User.is_admin == False
+                    User.matching_status.in_([1, 2, 3])
                 ).all()
 
                 if not utenti_da_matchare:
@@ -114,7 +159,7 @@ def create_app():
                     flash(f"Errore: file dei pesi non trovato in {weights_path}", "error")
                     return redirect(url_for('matching.index'))
 
-                #esecuszione algoritmo versione col cerotto int()
+                # esecuszione algoritmo versione col cerotto int()
                 row_ind, col_ind, people, M = matching_logic.esegui_matching_da_db(
                     utenti_da_matchare,
                     weights_path
@@ -133,7 +178,6 @@ def create_app():
                         mentee = people["mentee"][e]
                         mentor = people["mentor"][o]
 
-
                         # Crea il Match come 'Pending'
                         nuovo_match = Match(mentor_id=mentor['id'], mentee_id=mentee['id'], status='Pending')
                         db.session.add(nuovo_match)
@@ -146,7 +190,6 @@ def create_app():
                 if match_creati == 0:
                     flash("Algoritmo eseguito, ma nessun match valido trovato (punteggio > -1).", "info")
                     return redirect(url_for('matching.index'))
-
 
                 # Impostazione dello stato degli utenti a 5 (Pending Approval)
                 User.query.filter(
@@ -225,7 +268,7 @@ def create_app():
         def inaccessible_callback(self, name, **kwargs):
             return redirect(url_for('auth.login', next=request.url))
 
-    # FINE VISTA MATCHING
+
 
     admin = Admin(
         app,
@@ -234,8 +277,15 @@ def create_app():
         index_view=MyAdminIndexView(name='Statistiche', url='/admin')
     )
 
+    # Aggiungi le viste al pannello admin
     admin.add_view(UserAdminView(User, db.session, name="Users"))
+    admin.add_view(MatchAdminView(Match, db.session, name="Matches"))
     admin.add_view(MatchingView(name='Matching', endpoint='matching'))
+
+
+    admin.add_view(AdviceView(name='Consigli Utenti', endpoint='advice'))
+
+
     admin.add_link(MenuLink(name='Torna al Sito', category='', url='/'))
 
     return app

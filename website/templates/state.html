@@ -1,28 +1,59 @@
-{% extends "base.html" %} {% block title %}State{% endblock %} {% block
-content %}
+{% extends "base.html" %}
+{% block title %}Stato Matching{% endblock %}
 
-    {% if current_user.matching_status == 0 and partner %}
+{% block content %}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
 
-        <h1 align="center">Matching Completato!</h1>
+      {% if partner %}
+        <div class="card text-center shadow-sm">
+          <div class="card-header bg-success text-white">
+            <h2>Matching Completato!</h2>
+          </div>
+          <div class="card-body">
+            <h4 class="card-title">
+              {% if current_user.participation_role.startswith('Mentee') %}
+                Il tuo Mentore è:
+              {% else %}
+                Il tuo Mentee è:
+              {% endif %}
+            </h4>
+            <h1 class="display-4">{{ partner.first_name }} {{ partner.surname }}</h1>
+            <p class="lead">
+              Puoi contattare il tuo partner all'indirizzo email:
+              <a href="mailto:{{ partner.email }}">{{ partner.email }}</a>
+            </p>
+          </div>
+        </div>
 
-        {% if current_user.participation_role.startswith('Mentee') %}
-            <h2 align="center">Il tuo Mentore è:</h2>
-            <h3 align="center">{{ partner.first_name }} {{ partner.surname }}</h3>
-            <p align="center">Puoi contattarlo/a all'email: {{ partner.email }}</p>
+      {% else %}
+        <div class="alert alert-info text-center shadow-sm" role="alert">
+          <i class="fa fa-clock-o fa-4x mb-3" aria-hidden="true"></i>
 
-        {% else %}
-            <h2 align="center">Il tuo Mentee è:</h2>
-            <h3 align="center">{{ partner.first_name }} {{ partner.surname }}</h3>
-            <p align="center">Puoi contattarlo/a all'email: {{ partner.email }}</p>
-        {% endif %}
+          <h2 class="alert-heading">Siamo quasi pronti!</h2>
 
-    {% else %}
-        <h1 align="center">Matching state</h1>
-        <h2 align="center">you are about to be matched...</h2>
-        <p align="center">
-            L'amministratore sta processando la tua richiesta.
-            Torna a controllare questa pagina più tardi!
-        </p>
-    {% endif %}
+          {% if current_user.matching_status == 5 %}
+            <p class="lead">
+              L'algoritmo ha trovato un potenziale match per te.
+              Il nostro team sta revisionando la proposta per assicurare la migliore compatibilità.
+            </p>
+          {% else %}
+            <p class="lead">
+              Abbiamo ricevuto le tue preferenze.
+              L'algoritmo di matching verrà eseguito a breve.
+            </p>
+          {% endif %}
 
+          <hr>
+          <p class="mb-0">
+            Grazie per la pazienza! Riceverai una notifica (o controlla questa pagina)
+            non appena il tuo match sarà confermato.
+          </p>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
 {% endblock %}
