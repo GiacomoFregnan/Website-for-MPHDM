@@ -1,0 +1,89 @@
+{% extends 'admin/base.html' %}
+
+{% block body %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1>Tuning dell'Algoritmo (Pesi)</h1>
+            <p class="lead">
+                Modifica i pesi per dare più o meno importanza ai vari parametri durante il calcolo del matching. 
+                Valori più alti indicano maggiore priorità. (Usa il punto per i decimali, es: 0.5).
+            </p>
+            <hr />
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Parametri di Configurazione</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('config.update_weights') }}">
+                        
+                        <h5 class="mt-2 text-primary">Tempo e Comunicazione</h5>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="availability_time">Disponibilità di Tempo</label>
+                                <input type="number" step="0.01" class="form-control" name="availability_time" value="{{ weights.availability_time }}" required>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="availability_medium">Mezzo di Comunicazione</label>
+                                <input type="number" step="0.01" class="form-control" name="availability_medium" value="{{ weights.availability_medium }}" required>
+                            </div>
+                        </div>
+
+                        <hr>
+                        <h5 class="mt-4 text-primary">Argomenti di Discussione (Domande 1-10)</h5>
+                        <p class="text-muted small">Imposta l'importanza di ogni singola area tematica scelta nel questionario.</p>
+
+                        {% set topic_labels = [
+                            "Comunicazione con PI/Relatore",
+                            "Stesura Paper/Progetti",
+                            "Esperienza Conferenze",
+                            "Scelta periodo all'estero",
+                            "PhD-Work Balance",
+                            "PhD-Family Balance",
+                            "Migliorare Soft Skills",
+                            "Carriera Accademica",
+                            "Carriera in Azienda",
+                            "Benessere Mentale"
+                        ] %}
+
+                        <div class="form-row">
+                            {% for q_weight in weights.questions %}
+                            <div class="form-group col-md-6">
+                                <label for="q{{ loop.index0 }}">
+                                    <strong>Domanda {{ loop.index }}</strong>
+                                    <span class="text-secondary small">({{ topic_labels[loop.index0] }})</span>
+                                </label>
+                                <input type="number" step="0.01" class="form-control" name="q{{ loop.index0 }}" value="{{ q_weight }}" required>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-success btn-lg"><i class="fa fa-save"></i> Salva Nuovi Pesi</button>
+                            <a href="{{ url_for('config.index') }}" class="btn btn-secondary btn-lg">Annulla</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="alert alert-info">
+                <h5><i class="fa fa-info-circle"></i> Come funziona?</h5>
+                <p>Questi valori vengono moltiplicati matematicamente alle preferenze espresse dagli utenti (Similarità Coseno).</p>
+                <ul>
+                    <li><strong>1.0</strong>: Importanza standard.</li>
+                    <li><strong>0.5</strong>: Importanza dimezzata.</li>
+                    <li><strong>2.0</strong>: Importanza raddoppiata (parametro molto critico).</li>
+                    <li><strong>0.0</strong>: Parametro ignorato dal calcolo.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

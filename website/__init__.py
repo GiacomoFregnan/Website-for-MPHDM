@@ -7,18 +7,32 @@ from flask_admin import Admin, AdminIndexView, BaseView, expose
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.menu import MenuLink
 import os
+from dotenv import load_dotenv
 from . import matching_logic
 from sqlalchemy import func, not_
+from flask_mail import Mail, Message
+import json
 
+load_dotenv()
 db = SQLAlchemy()
 DB_NAME = "database.db"
 migrate = Migrate()
+mail = Mail()
 
 
 def create_app():
     app = Flask(__name__)
-    app.config['SECRET_KEY'] = 'hjshjhdjah kjshkjdhjs'
+    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
+
+    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+    app.config['MAIL_PORT'] = 587
+    app.config['MAIL_USE_TLS'] = True
+    app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+    app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+    app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_USERNAME')
+
+    mail.init_app(app)
 
     db.init_app(app)
     migrate.init_app(app, db)
@@ -44,6 +58,16 @@ def create_app():
         column_searchable_list = ('first_name', 'surname', 'email')
         column_filters = ('is_admin', 'university', 'matching_status')
 
+
+        # Impedisce all'admin di eliminare utenti per evitare record orfani nei Match
+        can_delete = False
+
+        # Impedisce la modifica manuale dei dati sensibili degli utenti dal pannello
+        can_edit = False
+
+        # Opzionale: impedisce la creazione manuale di utenti (devono passare per il Sign Up)
+        can_create = False
+
         def is_accessible(self): return current_user.is_authenticated and current_user.is_admin
 
         def inaccessible_callback(self, name, **kwargs): return redirect(url_for('auth.login', next=request.url))
@@ -62,6 +86,12 @@ def create_app():
         # Rendi le FK ricercabili (es. per email)
         column_searchable_list = ('mentee.email', 'mentor.email', 'mentee.first_name', 'mentor.first_name')
 
+
+        can_delete = False  # Forza l'admin a usare la tua funzione "Rifiuta" in Gestione Matching
+        can_edit = False    # Solo l'algoritmo dovrebbe modificare i Match
+        can_create = False  # Solo l'algoritmo dovrebbe creare i Match
+
+
         def is_accessible(self):
             return current_user.is_authenticated and current_user.is_admin
 
@@ -78,8 +108,16 @@ def create_app():
                 User.advice != ''  # Non è una stringa vuota
             ).all()
 
-
             return self.render('admin/advice.html', all_advice=all_advice)
+
+        # ELIMINAZIONE CONSIGLIO
+        @expose('/delete/<int:user_id>')
+        def delete_advice(self, user_id):
+                user = User.query.get_or_404(user_id)
+                user.advice = None  # Cancella il testo del consiglio
+                db.session.commit()
+                flash('Consiglio rimosso con successo!', category='success')
+                return redirect(url_for('advice.index'))
 
         def is_accessible(self):
             return current_user.is_authenticated and current_user.is_admin
@@ -220,6 +258,10 @@ def create_app():
                 if match.mentor: match.mentor.matching_status = 0
                 if match.mentee: match.mentee.matching_status = 0
 
+                #RICHIAMO LA FUNZIONE DELLE EMAIL
+                self.send_matching_emails(match)
+
+
                 db.session.commit()
                 flash(f"Match tra {match.mentor.first_name} e {match.mentee.first_name} approvato.", "success")
             else:
@@ -242,6 +284,44 @@ def create_app():
             else:
                 flash("Match già processato.", "warning")
             return redirect(url_for('matching.index'))
+
+        # FUNZIONE PER COMPOSIZIONE E INVIO MAIL
+        def send_matching_emails(self, match):
+            # Email per il Mentee
+            msg_mentee = Message(
+                "Il tuo Match è stato approvato! - MyPhDMentor",
+                recipients=[match.mentee.email]
+            )
+            msg_mentee.body = f"""Ciao {match.mentee.first_name.capitalize()},
+abbiamo una splendida notizia! Il tuo match è stato approvato.
+Il tuo Mentor è {match.mentor.first_name.capitalize()} {match.mentor.surname.capitalize()}.
+
+Puoi contattare il tuo Mentor all'indirizzo email: {match.mentor.email}
+
+Buon percorso di mentoring!
+Il team di MyPhDMentor"""
+
+            # Email per il Mentor
+            msg_mentor = Message(
+                "Nuovo Mentee assegnato! - MyPhDMentor",
+                recipients=[match.mentor.email]
+            )
+            msg_mentor.body = f"""Ciao {match.mentor.first_name.capitalize()},
+il sistema di matching ha confermato la tua assegnazione.
+Il tuo Mentee è {match.mentee.first_name.capitalize()} {match.mentee.surname.capitalize()}.
+            
+Puoi contattare il tuo Mentee all'indirizzo email: {match.mentee.email}
+            
+Grazie per la tua disponibilità e buon lavoro!
+Il team di MyPhDMentor"""
+
+            try:
+                mail.send(msg_mentee)
+                mail.send(msg_mentor)
+            except Exception as e:
+                # Se l'invio fallisce, lo stampiamo nel terminale per fare debug
+                print(f"Errore critico nell'invio delle email: {e}")
+
 
         # Funzione helper per resettare lo stato utente
         def reset_user_status(self, user):
@@ -269,6 +349,54 @@ def create_app():
             return redirect(url_for('auth.login', next=request.url))
 
 
+    # VISTA PER LA CONFIGURAZIONE DEI PESI (WEIGHTS.JSON)
+    class AlgorithmConfigView(BaseView):
+        @expose('/')
+        def index(self):
+            # Cerca il file weights.json nella cartella config
+            weights_path = os.path.join(app.root_path, '..', 'config', 'weights.json')
+            try:
+                with open(weights_path, 'r') as f:
+                    weights = json.load(f)
+            except Exception as e:
+                weights = {}
+                flash(f"Errore nella lettura del file weights.json: {e}", "error")
+
+            return self.render('admin/weights.html', weights=weights)
+
+        @expose('/update', methods=['POST'])
+        def update_weights(self):
+            weights_path = os.path.join(app.root_path, '..', 'config', 'weights.json')
+            try:
+                # Recupera i dati dal form e convertili in float (numeri decimali)
+                new_weights = {
+                    "availability_time": float(request.form.get('availability_time', 1.0)),
+                    "availability_medium": float(request.form.get('availability_medium', 0.5)),
+                    "questions": [
+                        float(request.form.get(f'q{i}', 1.0)) for i in range(10)
+                    ]
+                }
+
+                # Sovrascrive il file JSON con i nuovi dati
+                with open(weights_path, 'w') as f:
+                    json.dump(new_weights, f, indent=4)
+
+                flash("Pesi dell'algoritmo aggiornati con successo!", "success")
+            except ValueError:
+                flash("Errore: Inserisci solo valori numerici validi (usa il punto per i decimali).", "error")
+            except Exception as e:
+                flash(f"Errore critico durante il salvataggio: {e}", "error")
+
+            return redirect(url_for('config.index'))
+
+        def is_accessible(self):
+            return current_user.is_authenticated and current_user.is_admin
+
+        def inaccessible_callback(self, name, **kwargs):
+            return redirect(url_for('auth.login', next=request.url))
+
+
+
 
     admin = Admin(
         app,
@@ -281,10 +409,8 @@ def create_app():
     admin.add_view(UserAdminView(User, db.session, name="Users"))
     admin.add_view(MatchAdminView(Match, db.session, name="Matches"))
     admin.add_view(MatchingView(name='Matching', endpoint='matching'))
-
-
     admin.add_view(AdviceView(name='Consigli Utenti', endpoint='advice'))
-
+    admin.add_view(AlgorithmConfigView(name='Tuning Algoritmo', endpoint='config'))
 
     admin.add_link(MenuLink(name='Torna al Sito', category='', url='/'))
 

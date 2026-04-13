@@ -1,5 +1,16 @@
 {
-"availability_time":1,
-"availability_medium":0.5,
-"questions":[1,1,1,1,1,1,1,1,1,0.75]
+    "availability_time": 1.0,
+    "availability_medium": 0.5,
+    "questions": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        0.75
+    ]
 }
