@@ -1,7 +1,7 @@
 # Flask Web App MPHDM
 
 ## Installazione e Configurazione
-Per lanciare i sito web in locale seguire i seguenti passaggi.
+Per lanciare il sito web in locale seguire i seguenti passaggi.
 Assicurati di avere installata l'ultima versione di Python.
 
 
@@ -19,7 +19,7 @@ Questo file deve essere posizionato nella cartella principale (root) del progett
 
 Apri il file .env appena creato e incollaci dentro le credenziali (MAIL_USERNAME, MAIL_PASSWORD, SECRET_KEY) fornite privatamente
 
-Avvvia l'app eseguendo il file principale
+Avvia l'app eseguendo il file principale
 ```bash
 python main.py
 ```
