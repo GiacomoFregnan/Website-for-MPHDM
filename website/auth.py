@@ -107,12 +107,12 @@ def delete_account():
         logout_user()
         db.session.commit()
 
-        flash('Il tuo account è stato eliminato con successo.', category='success')
+        flash('Your account has been successfully deleted.', category='success')
         return redirect(url_for('auth.login'))
 
     except Exception as e:
         db.session.rollback()
-        flash(f'Errore durante l\'eliminazione dell\'account: {e}', category='error')
+        flash(f'Error deleting account: {e}', category='error')
         return redirect(url_for('views.home'))
 
 

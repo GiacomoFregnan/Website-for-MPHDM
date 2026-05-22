@@ -117,7 +117,7 @@ def create_app():
                 user = User.query.get_or_404(user_id)
                 user.advice = None  # Cancella il testo del consiglio
                 db.session.commit()
-                flash('Consiglio rimosso con successo!', category='success')
+                flash('Suggestion successfully removed!', category='success')
                 return redirect(url_for('advice.index'))
 
         def is_accessible(self):
@@ -147,7 +147,7 @@ def create_app():
             except Exception as e:
                 totale_utenti = mentors = mentees = utenti_da_matchare = utenti_matchati = utenti_in_attesa_approvazione = 0
                 discovery_stats = []
-                flash(f"Errore nel caricamento statistiche: {e}", "error")
+                flash(f"Error loading statistics: {e}", "error")
 
             return self.render(
                 'admin/custom_index.html',
@@ -189,7 +189,7 @@ def create_app():
                 ).all()
 
                 if not utenti_da_matchare:
-                    flash("Nessun utente in attesa di matching (Stato 1, 2, o 3).", "warning")
+                    flash("No users pending match (Status 1, 2, or 3).", "warning")
                     return redirect(url_for('matching.index'))
 
                 weights_path = os.path.join(app.root_path, '..', 'config', 'weights.json')
@@ -205,7 +205,7 @@ def create_app():
                 )
 
                 if people is None:
-                    flash("Algoritmo avviato, ma non ci sono abbastanza mentori o mentee per un matching.", "info")
+                    flash("Algorithm started, but not enough mentors or mentees for a match.", "info")
                     return redirect(url_for('matching.index'))
 
                 # aggiorno DB
@@ -227,7 +227,7 @@ def create_app():
                         match_creati += 1
 
                 if match_creati == 0:
-                    flash("Algoritmo eseguito, ma nessun match valido trovato (punteggio > -1).", "info")
+                    flash("Algorithm executed, but no valid match found (score > -1).", "info")
                     return redirect(url_for('matching.index'))
 
                 # Impostazione dello stato degli utenti a 5 (Pending Approval)
@@ -239,12 +239,12 @@ def create_app():
                 )
 
                 db.session.commit()
-                flash(f'Matching completato! Creati {match_creati} nuovi match. Sono in attesa di approvazione.',
+                flash(f'Matching completed! Created {match_creati} new matches. They are pending approval.',
                       'success')
 
             except Exception as e:
                 db.session.rollback()
-                flash(f'Errore critico durante il matching: {e}', 'error')
+                flash(f'Critical error during matching: {e}', 'error')
 
             return redirect(url_for('matching.index'))
 
@@ -264,9 +264,9 @@ def create_app():
 
 
                 db.session.commit()
-                flash(f"Match tra {match.mentor.first_name} e {match.mentee.first_name} approvato.", "success")
+                flash(f"Match between {match.mentor.first_name} and {match.mentee.first_name} approved.", "success")
             else:
-                flash("Match già processato.", "warning")
+                flash("Match already processed.", "warning")
             return redirect(url_for('matching.index'))
 
         # ROTTA PER RIFIUTARE
@@ -281,7 +281,7 @@ def create_app():
 
                 db.session.delete(match)
                 db.session.commit()
-                flash(f"Match tra {match.mentor.first_name} e {match.mentee.first_name} rifiutato.", "danger")
+                flash(f"Match between {match.mentor.first_name} and {match.mentee.first_name} rejected.", "danger")
             else:
                 flash("Match già processato.", "warning")
             return redirect(url_for('matching.index'))
@@ -290,31 +290,31 @@ def create_app():
         def send_matching_emails(self, match):
             # Email per il Mentee
             msg_mentee = Message(
-                "Il tuo Match è stato approvato! - MyPhDMentor",
+                "Your Match has been approved! - MyPhDMentor",
                 recipients=[match.mentee.email]
             )
-            msg_mentee.body = f"""Ciao {match.mentee.first_name.capitalize()},
-abbiamo una splendida notizia! Il tuo match è stato approvato.
-Il tuo Mentor è {match.mentor.first_name.capitalize()} {match.mentor.surname.capitalize()}.
+            msg_mentee.body = f"""Hi {match.mentee.first_name.capitalize()},
+awe have great news! Your match has been approved.
+Your Mentor is {match.mentor.first_name.capitalize()} {match.mentor.surname.capitalize()}.
 
-Puoi contattare il tuo Mentor all'indirizzo email: {match.mentor.email}
+You can contact your Mentor at this email address: {match.mentor.email}
 
-Buon percorso di mentoring!
-Il team di MyPhDMentor"""
+Have a great mentoring journey!
+The MyPhDMentor Team"""
 
             # Email per il Mentor
             msg_mentor = Message(
-                "Nuovo Mentee assegnato! - MyPhDMentor",
+                "New Mentee assigned! - MyPhDMentor",
                 recipients=[match.mentor.email]
             )
-            msg_mentor.body = f"""Ciao {match.mentor.first_name.capitalize()},
-il sistema di matching ha confermato la tua assegnazione.
-Il tuo Mentee è {match.mentee.first_name.capitalize()} {match.mentee.surname.capitalize()}.
+            msg_mentor.body = f"""Hi {match.mentor.first_name.capitalize()},
+the matching system has confirmed your assignment.
+Your Mentee is {match.mentee.first_name.capitalize()} {match.mentee.surname.capitalize()}.
             
-Puoi contattare il tuo Mentee all'indirizzo email: {match.mentee.email}
+You can contact your Mentee at this email address: {match.mentee.email}
             
-Grazie per la tua disponibilità e buon lavoro!
-Il team di MyPhDMentor"""
+Thank you for your availability and enjoy your mentoring!
+The MyPhDMentor Team"""
 
             try:
                 mail.send(msg_mentee)
@@ -361,7 +361,7 @@ Il team di MyPhDMentor"""
                     weights = json.load(f)
             except Exception as e:
                 weights = {}
-                flash(f"Errore nella lettura del file weights.json: {e}", "error")
+                flash(f"Error reading weights.json file: {e}", "error")
 
             return self.render('admin/weights.html', weights=weights)
 
@@ -382,11 +382,11 @@ Il team di MyPhDMentor"""
                 with open(weights_path, 'w') as f:
                     json.dump(new_weights, f, indent=4)
 
-                flash("Pesi dell'algoritmo aggiornati con successo!", "success")
+                flash("Algorithm weights successfully updated!", "success")
             except ValueError:
-                flash("Errore: Inserisci solo valori numerici validi (usa il punto per i decimali).", "error")
+                flash("Error: Please enter valid numeric values (use a dot for decimals).", "error")
             except Exception as e:
-                flash(f"Errore critico durante il salvataggio: {e}", "error")
+                flash(f"Critical error during save: {e}", "error")
 
             return redirect(url_for('config.index'))
 
@@ -401,7 +401,7 @@ Il team di MyPhDMentor"""
 
     admin = Admin(
         app,
-        name='Pannello Admin',
+        name='Admin Panel',
         template_mode='bootstrap4',
         index_view=MyAdminIndexView(name='Statistiche', url='/admin')
     )
@@ -410,9 +410,9 @@ Il team di MyPhDMentor"""
     admin.add_view(UserAdminView(User, db.session, name="Users"))
     admin.add_view(MatchAdminView(Match, db.session, name="Matches"))
     admin.add_view(MatchingView(name='Matching', endpoint='matching'))
-    admin.add_view(AdviceView(name='Consigli Utenti', endpoint='advice'))
-    admin.add_view(AlgorithmConfigView(name='Tuning Algoritmo', endpoint='config'))
+    admin.add_view(AdviceView(name='User Suggestions', endpoint='advice'))
+    admin.add_view(AlgorithmConfigView(name='Algorithm Tuning', endpoint='config'))
 
-    admin.add_link(MenuLink(name='Torna al Sito', category='', url='/'))
+    admin.add_link(MenuLink(name='Back to Website', category='', url='/'))
 
     return app

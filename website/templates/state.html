@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Stato Matching{% endblock %}
+{% block title %}Matching Status{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
@@ -9,19 +9,19 @@
       {% if partner %}
         <div class="card text-center shadow-sm">
           <div class="card-header bg-success text-white">
-            <h2>Matching Completato!</h2>
+            <h2>Match Completed!</h2>
           </div>
           <div class="card-body">
             <h4 class="card-title">
               {% if current_user.participation_role.startswith('Mentee') %}
-                Il tuo Mentore è:
+                Your Mentor is:
               {% else %}
-                Il tuo Mentee è:
+                Your Mentee is:
               {% endif %}
             </h4>
             <h1 class="display-4">{{ partner.first_name }} {{ partner.surname }}</h1>
             <p class="lead">
-              Puoi contattare il tuo partner all'indirizzo email:
+              You can contact your partner at the email address:
               <a href="mailto:{{ partner.email }}">{{ partner.email }}</a>
             </p>
           </div>
@@ -31,24 +31,24 @@
         <div class="alert alert-info text-center shadow-sm" role="alert">
           <i class="fa fa-clock-o fa-4x mb-3" aria-hidden="true"></i>
 
-          <h2 class="alert-heading">Siamo quasi pronti!</h2>
+          <h2 class="alert-heading">We are almost ready!</h2>
 
           {% if current_user.matching_status == 5 %}
             <p class="lead">
-              L'algoritmo ha trovato un potenziale match per te.
-              Il nostro team sta revisionando la proposta per assicurare la migliore compatibilità.
+              The algorithm has found a potential match for you.
+              Our team is reviewing the proposal to ensure the best compatibility.
             </p>
           {% else %}
             <p class="lead">
-              Abbiamo ricevuto le tue preferenze.
-              L'algoritmo di matching verrà eseguito a breve.
+              We have received your preferences.
+              The matching algorithm will be executed shortly.
             </p>
           {% endif %}
 
           <hr>
           <p class="mb-0">
-            Grazie per la pazienza! Riceverai una notifica (o controlla questa pagina)
-            non appena il tuo match sarà confermato.
+            Thank you for your patience! You will receive a notification (or check back on this page)
+            as soon as your match is confirmed.
           </p>
         </div>
       {% endif %}

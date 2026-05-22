@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Profilo{% endblock %}
+{% block title %}Profile{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
@@ -7,20 +7,20 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header">
-                    <h2>Profilo di {{ current_user.first_name.capitalize() }}</h2>
+                    <h2>{{ current_user.first_name.capitalize() }}'s Profile</h2>
                 </div>
                 <div class="card-body">
                     <p><strong>Email:</strong> {{ current_user.email }}</p>
-                    <p><strong>Nome:</strong> {{ current_user.first_name.capitalize() }} {{ current_user.surname.capitalize() }}</p>
-                    <p><strong>Stato Matching:</strong>
+                    <p><strong>Name:</strong> {{ current_user.first_name.capitalize() }} {{ current_user.surname.capitalize() }}</p>
+                    <p><strong>Matching Status:</strong>
                         {% if current_user.matching_status == 0 %}
-                            <span class="badge badge-success">Match Approvato</span>
+                            <span class="badge badge-success">Match Approved</span>
                         {% elif current_user.matching_status == 5 %}
-                            <span class="badge badge-info">In attesa di approvazione</span>
+                            <span class="badge badge-info">Pending Approval</span>
                         {% elif current_user.matching_status in [1, 2, 3] %}
-                            <span class="badge badge-warning">In attesa di matching</span>
+                            <span class="badge badge-warning">Pending Match</span>
                         {% else %}
-                            <span class="badge badge-secondary">Form non compilato</span>
+                            <span class="badge badge-secondary">Form Not Filled</span>
                         {% endif %}
                     </p>
                 </div>
@@ -29,16 +29,16 @@
             {% if not current_user.is_admin %}
             <div class="card border-danger mt-4">
                 <div class="card-header bg-danger text-white">
-                    <h4>Zona Pericolosa</h4>
+                    <h4>Danger Zone</h4>
                 </div>
                 <div class="card-body">
-                    <p>L'eliminazione del tuo account è permanente e non può essere annullata. Tutti i tuoi dati e i tuoi match verranno rimossi dal sistema.</p>
+                    <p>Deleting your account is permanent and cannot be undone. All your data and matches will be removed from the system.</p>
 
                     <form method="POST" action="{{ url_for('auth.delete_account') }}">
                         <button type="submit"
                                 class="btn btn-danger"
-                                onclick="return confirm('Sei assolutamente sicuro di voler eliminare il tuo account? Questa azione è irreversibile.')">
-                            Elimina il mio account
+                                onclick="return confirm('Are you absolutely sure you want to delete your account? This action is irreversible.')">
+                            Delete my account
                         </button>
                     </form>
                 </div>

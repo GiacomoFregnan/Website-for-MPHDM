@@ -80,7 +80,7 @@ def home():
                 current_user.matching_status = 3
 
             db.session.commit()
-            flash('Informations updated!', category='success')
+            flash('Information updated!', category='success')
             return redirect(url_for('views.state'))
 
     return render_template("home.html", user=current_user)
