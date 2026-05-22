@@ -195,7 +195,7 @@ def create_app():
                 weights_path = os.path.join(app.root_path, '..', 'config', 'weights.json')
 
                 if not os.path.exists(weights_path):
-                    flash(f"Errore: file dei pesi non trovato in {weights_path}", "error")
+                    flash(f"Error: weights file not found in {weights_path}", "error")
                     return redirect(url_for('matching.index'))
 
                 # esecuszione algoritmo versione col cerotto int()
@@ -283,7 +283,7 @@ def create_app():
                 db.session.commit()
                 flash(f"Match between {match.mentor.first_name} and {match.mentee.first_name} rejected.", "danger")
             else:
-                flash("Match già processato.", "warning")
+                flash("Match already processed.", "warning")
             return redirect(url_for('matching.index'))
 
         # FUNZIONE PER COMPOSIZIONE E INVIO MAIL
@@ -294,7 +294,7 @@ def create_app():
                 recipients=[match.mentee.email]
             )
             msg_mentee.body = f"""Hi {match.mentee.first_name.capitalize()},
-awe have great news! Your match has been approved.
+we have great news! Your match has been approved.
 Your Mentor is {match.mentor.first_name.capitalize()} {match.mentor.surname.capitalize()}.
 
 You can contact your Mentor at this email address: {match.mentor.email}
@@ -403,7 +403,7 @@ The MyPhDMentor Team"""
         app,
         name='Admin Panel',
         template_mode='bootstrap4',
-        index_view=MyAdminIndexView(name='Statistiche', url='/admin')
+        index_view=MyAdminIndexView(name='Dashboard', url='/admin')
     )
 
     # Aggiungi le viste al pannello admin
